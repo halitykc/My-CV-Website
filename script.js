@@ -29,20 +29,61 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastScrollTop = 0;
     const navbar = document.querySelector('.navbar');
     const scrollThreshold = 100;
+    const scrollProgress = document.getElementById('scrollProgress');
+    const backToTop = document.getElementById('backToTop');
+    const sections = document.querySelectorAll('section[id]');
+    const navLinksAll = document.querySelectorAll('.nav-links a[href^="#"]');
 
     window.addEventListener('scroll', () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
 
-        if (scrollTop > scrollThreshold) {
-            if (scrollTop > lastScrollTop) {
-                navbar.style.transform = 'translateY(-100%)';
+        // Progress Bar
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        if (scrollProgress) {
+            scrollProgress.style.width = scrollPercent + '%';
+        }
+
+        // Back to Top Button
+        if (backToTop) {
+            if (scrollTop > 500) {
+                backToTop.classList.add('visible');
             } else {
-                navbar.style.transform = 'translateY(0)';
+                backToTop.classList.remove('visible');
             }
         }
 
+        // Navbar stays fixed - no hide/show
+
+        // Active Section Highlight
+        let currentSection = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 150;
+            const sectionHeight = section.offsetHeight;
+            if (scrollTop >= sectionTop && scrollTop < sectionTop + sectionHeight) {
+                currentSection = section.getAttribute('id');
+            }
+        });
+
+        navLinksAll.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + currentSection) {
+                link.classList.add('active');
+            }
+        });
+
         lastScrollTop = scrollTop;
     });
+
+    // Back to Top Click Handler
+    if (backToTop) {
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
 
     // ============================================
     // MOBILE MENU TOGGLE
@@ -188,4 +229,101 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('%c⚡ HALIT YAKICI', 'font-size: 24px; font-weight: bold; color: #00f5ff; text-shadow: 0 0 10px #00f5ff;');
     console.log('%cEndüstri Mühendisi & Yazılım Geliştirici', 'font-size: 14px; color: #ff00ff;');
     console.log('%c> system.ready()', 'font-size: 12px; color: #00ff88; font-family: monospace;');
+
+    // ============================================
+    // 42 EASTER EGG - Click Counter
+    // ============================================
+    const heroName = document.querySelector('.hero-name');
+    let clickCount = 0;
+    let easterEggActive = false;
+    const targetClicks = 42;
+
+    if (heroName) {
+        heroName.addEventListener('click', () => {
+            if (easterEggActive) return;
+
+            clickCount++;
+
+            // Show progress in console
+            if (clickCount % 10 === 0) {
+                console.log(`%c> click_count: ${clickCount}/${targetClicks}`, 'color: #00f5ff; font-family: monospace;');
+            }
+
+            // Trigger Easter Egg at 42 clicks
+            if (clickCount >= targetClicks) {
+                triggerEasterEgg();
+                clickCount = 0; // Reset counter
+            }
+        });
+    }
+
+    function triggerEasterEgg() {
+        easterEggActive = true;
+        const originalText = heroName.textContent;
+
+        // Console celebration
+        console.log('%c🎉 EASTER EGG ACTIVATED!', 'font-size: 20px; color: #00ff88; font-weight: bold;');
+        console.log('%c> ./42 --secret --mode=glitch', 'color: #ff00ff; font-family: monospace;');
+
+        // Phase 1: Initial Glitch (0.5s)
+        heroName.classList.add('easter-egg-active');
+
+        // Create screen glitch overlay
+        const glitchOverlay = document.createElement('div');
+        glitchOverlay.className = 'glitch-overlay';
+        document.body.appendChild(glitchOverlay);
+
+        // Phase 2: Show "42" after initial glitch
+        setTimeout(() => {
+            heroName.textContent = '42';
+
+            // Create floating 42 element with separate digits
+            const easter42 = document.createElement('div');
+            easter42.className = 'easter-egg-42';
+
+            // Create separate spans for 4 and 2
+            const digit4 = document.createElement('span');
+            digit4.className = 'digit digit-4';
+            digit4.textContent = '4';
+
+            const digit2 = document.createElement('span');
+            digit2.className = 'digit digit-2';
+            digit2.textContent = '2';
+
+            easter42.appendChild(digit4);
+            easter42.appendChild(digit2);
+            document.body.appendChild(easter42);
+
+        }, 500);
+
+        // Phase 3: Start exit animation (after 2 seconds)
+        setTimeout(() => {
+            const easter42 = document.querySelector('.easter-egg-42');
+            if (easter42) {
+                easter42.classList.add('exit');
+            }
+        }, 2000);
+
+        // Phase 4: Glitch back to original
+        setTimeout(() => {
+            // Remove floating 42
+            const easter42 = document.querySelector('.easter-egg-42');
+            if (easter42) {
+                easter42.remove();
+            }
+
+            // Restore original text with glitch
+            heroName.textContent = originalText;
+
+        }, 2500);
+
+        // Phase 5: Clean up
+        setTimeout(() => {
+            heroName.classList.remove('easter-egg-active');
+            glitchOverlay.remove();
+            easterEggActive = false;
+
+            console.log('%c> system.restored()', 'color: #00ff88; font-family: monospace;');
+        }, 3000);
+    }
 });
